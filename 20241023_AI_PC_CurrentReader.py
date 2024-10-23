@@ -48,13 +48,13 @@ def show_frame():
     lmain.after(5, show_frame)
     boundBoxes = find_text(frame)
     #show rectangles around the text
-    for (startX, startY, endX, endY) in boundBoxes:
-        cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
-    cv2.imshow("Text Detection", frame)
+    #for (startX, startY, endX, endY) in boundBoxes:
+    #    cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 0, 255), 1)
+    #cv2.imshow("Text Detection", frame)
 
 def find_text(frame):
     # EAST model requires the width and height of the image to be multiple of 32
-    orig = frame.copy()
+    #orig = frame.copy()
     (H, W) = frame.shape[:2]
     (newW, newH) = (320, 320)
     rW = W / float(newW)
@@ -92,8 +92,6 @@ def find_text(frame):
             if scoresData[x] < 0.5:
                 continue
             # compute the offset factor as our resulting feature maps will be 4x smaller than the input image
-            # TODO: this might be off fue to different cam resolution  
-            #(offsetX, offsetY) = (x * 4.0, y * 4.0)
             (offsetX, offsetY) = (x * 4.0, y * 4.0)
             # extract the rotation angle for the prediction and then compute the sin and cosine
             angle = anglesData[x]
@@ -119,49 +117,11 @@ def find_text(frame):
         endX = int(endX * rW)
         endY = int(endY * rH)
         # draw the bounding box on the image
+    # show rectangles around the text
+    for (startX, startY, endX, endY) in rects:
+        cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 0, 255), 1)
+    cv2.imshow("Text Detection", frame)
     return rects
-
-
-
-
-
-
-    
- 
-
-#function to find the number in the video stream
-def find_number(frame):
-    height, width, _ = frame.shape
-    blob = cv2.dnn.blobFromImage(frame, 1.0, (width, height), (123.68, 116.78, 103.94), True, False)
-    net.setInput(blob)
-    output_layers = ["feature_fusion/Conv_7/Sigmoid", "feature_fusion/concat_3"]
-    outs = net.forward(output_layers)
-    number = ""
-    detected = False
-    for out in outs:
-        for detection in out:
-            scores = detection[5:]
-            class_id = np.argmax(scores)
-            confidence = scores[class_id]
-            if confidence > 0.5:
-                detected = True
-                center_x = int(detection[0] * width)
-                center_y = int(detection[1] * height)
-                w = int(detection[2] * width)
-                h = int(detection[3] * height)
-                x = int(center_x - w / 2)
-                y = int(center_y - h / 2)
-                roi = frame[y:y+h, x:x+w]
-                number = number + str(class_id)  # Assuming class_id corresponds to the digit
-                # Draw a box around the region of interest
-                #cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 5)
-    if not detected:
-        print("No numbers detected")
-    return number
-
-
-
 
 if __name__ == "__main__":
     lmain = tk.Label(root)
